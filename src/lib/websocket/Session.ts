@@ -43,6 +43,12 @@ class Session {
       case 'reuseId': {
         break
       }
+      case 'subscribe': {
+        break
+      }
+      case 'unsubscribe': {
+        break
+      }
     }
   }
 

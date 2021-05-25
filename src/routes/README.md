@@ -19,6 +19,7 @@ by the application. You can now add as many files as you want inside that folder
 In this way you can create complex routes within a single monolith,
 and eventually extract them.
 
+디렉토리를 생성했다면 꼭 index.js 를 만들어야 한다
 If you need to share functionality between routes, place that
 functionality into the `plugins` folder, and share it via
 [decorators](https://www.fastify.io/docs/latest/Decorators/).
