@@ -6,6 +6,7 @@
  * 사용자가 접속을 하게 되면 해당 아이디에 맞는 토큰 발급
  * 재접속을 하게 될때는 자기가 들고 있던 Id를 그대로 사용할수 있게
  */
+
 type GetIdAction = {
   type: 'getId'
   id: string
@@ -18,9 +19,23 @@ type ReuseIdAction = {
   token: string
 }
 
-const actionTypes = ['getId', 'reuseId']
+type SubscribeAction = {
+  type: 'subscribe'
+  key: string
+}
 
-export type ReceiveAction = GetIdAction | ReuseIdAction
+type UnsubscribeAction = {
+  type: 'unsubscribe'
+  key: string
+}
+
+const actionTypes = ['getId', 'reuseId', 'subscribe', 'unsubscribe']
+
+export type ReceiveAction =
+  | GetIdAction
+  | ReuseIdAction
+  | SubscribeAction
+  | UnsubscribeAction
 
 export function isReceiveAction(object: any): object is ReceiveAction {
   if (!object?.type) return false
