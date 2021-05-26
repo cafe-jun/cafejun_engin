@@ -13,8 +13,8 @@ const websocket: FastifyPluginAsync = async fastify => {
       //connection.socket.send('hello world')
       try {
         const data = JSON.parse(message.toString())
-        session.handle(data)
         if (!isReceiveAction(data)) return
+        session.handle(data)
         //logic
       } catch (e) {
         // 도중에 에러가
