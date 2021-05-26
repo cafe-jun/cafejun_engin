@@ -1,6 +1,9 @@
 import { FastifyPluginAsync } from 'fastify'
 import { isReceiveAction } from '../../lib/websocket/actions/receive'
+import { globalSubscriber } from '../../lib/websocket/redis/createRedisClient'
 import Session from '../../lib/websocket/Session'
+
+globalSubscriber
 
 const websocket: FastifyPluginAsync = async fastify => {
   fastify.get('/', { websocket: true }, (connection, req) => {

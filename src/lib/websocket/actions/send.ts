@@ -41,8 +41,9 @@ const actionCreators = {
   reuseIdSuccess: (): ReuseIdSuccessAction => ({
     type: 'reuseIdSuccess',
   }),
-  subscriptionMessage: (message: any) => ({
+  subscriptionMessage: (key: string, message: any) => ({
     type: 'subscriptionMessage',
+    key,
     message,
   }),
 }
