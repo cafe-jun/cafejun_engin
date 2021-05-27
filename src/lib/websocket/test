@@ -4,6 +4,10 @@
 }
 
 {
+    "type" : "listsSessions"
+}
+
+{
     "type" : "message",
     "message" : {
         "type" : "text",
