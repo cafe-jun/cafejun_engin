@@ -1,9 +1,12 @@
 // 인스턴스까지 필요 없다
 import { Message } from './actions/receive'
-import { coreRedisClient } from './redis/createRedisClient'
 import Session from './Session'
+import { coreRedisClient } from './redis/createRedisClient'
+import { promisify } from 'util'
 
 const withPrefix = (channel: string) => `channel:${channel}`
+const createSessionsKey = (channel: string) => `${withPrefix(channel)}:users`
+
 const channelHelper = {
   enter(channel: string, sessionId: string) {
     coreRedisClient.publish(
@@ -13,6 +16,7 @@ const channelHelper = {
         sessionId: sessionId,
       })
     )
+    coreRedisClient.lpush(createSessionsKey(channel), sessionId)
   },
 
   leave(channel: string, sessionId: string) {
@@ -23,6 +27,7 @@ const channelHelper = {
         sessionId: sessionId,
       })
     )
+    coreRedisClient.lrem(createSessionsKey(channel), 1, sessionId)
   },
   message(channel: string, sessionId: string, message: Message) {
     coreRedisClient.publish(
@@ -33,6 +38,12 @@ const channelHelper = {
         message,
       })
     )
+  },
+  async listSessions(channel: string) {
+    const key = createSessionsKey(channel)
+    // this가 무엇인지를 몰라 bind를 해야한다
+    const lrangeAsync = promisify(coreRedisClient.lrange).bind(coreRedisClient)
+    return await lrangeAsync(key, 0, -1)
   },
 }
 

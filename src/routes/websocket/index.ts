@@ -13,6 +13,7 @@ const websocket: FastifyPluginAsync = async fastify => {
       //connection.socket.send('hello world')
       try {
         const data = JSON.parse(message.toString())
+        console.log(data)
         if (!isReceiveAction(data)) return
         session.handle(data)
         //logic
@@ -20,6 +21,9 @@ const websocket: FastifyPluginAsync = async fastify => {
         // 도중에 에러가
         console.error(e)
       }
+    })
+    connection.socket.on('close', (code, reaon) => {
+      session.dispose()
     })
   })
 }

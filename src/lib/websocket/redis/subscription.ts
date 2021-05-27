@@ -16,11 +16,17 @@ class Subscription {
     const sessionSet = this.subscriptionMap.get(key)! // guaranteed to
     sessionSet.add(session)
     console.log(`${session.id} has subscribed to channel ${key}`)
+    return () => {
+      this.unsubscribe(key, session)
+    }
   }
   unsubscribe(key: string, session: Session) {
     const sessionSet = this.subscriptionMap.get(key)
     if (!sessionSet) return
     sessionSet.delete(session)
+    if (sessionSet.size === 0) {
+      this.subscriptionMap.delete(key)
+    }
   }
   dispatch(key: string, message: any) {
     const sessionSet = this.subscriptionMap.get(key)

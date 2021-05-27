@@ -46,6 +46,7 @@ const actionTypes = [
   'enter',
   'leave',
   'message',
+  'listSessions',
 ]
 // 예외적으로 따로 함
 type MessageAction = {
@@ -67,6 +68,10 @@ export type Message =
       value: any
     }
 
+type LIST_SESSIONS = {
+  type: 'listSessions'
+}
+
 export type ReceiveAction =
   | GetIdAction
   | ReuseIdAction
@@ -75,6 +80,7 @@ export type ReceiveAction =
   | EnterAction
   | LeaveAction
   | MessageAction
+  | LIST_SESSIONS
 
 export function isReceiveAction(object: any): object is ReceiveAction {
   if (!object?.type) return false
