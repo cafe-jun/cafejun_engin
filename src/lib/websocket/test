@@ -1,0 +1,16 @@
+{
+    "type" : "enter",
+    "channel" : "test"
+}
+
+{
+    "type" : "message",
+    "message" : {
+        "type" : "text",
+        "text" : "hello"
+    }
+}
+
+{
+    "type" : "leave"
+}
