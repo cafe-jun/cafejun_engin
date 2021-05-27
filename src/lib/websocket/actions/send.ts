@@ -1,4 +1,5 @@
 /**
+import subscription from './../redis/subscription';
  * actions that server sends
  */
 
@@ -19,13 +20,20 @@ type ReuseIdSuccessAction = {
 
 type SubscriptionMessageAction = {
   type: 'subscriptionMessage'
+  key: string
   message: any
+}
+
+type SubscriptionSuccess = {
+  type: 'subscriptionSuccess'
+  key: string
 }
 
 export type sendAction =
   | connectedAction
   | ReuseIdSuccessAction
   | SubscriptionMessageAction
+  | SubscriptionSuccess
 
 const actionCreators = {
   connected: (id: string, token: string): connectedAction => ({
@@ -41,9 +49,17 @@ const actionCreators = {
   reuseIdSuccess: (): ReuseIdSuccessAction => ({
     type: 'reuseIdSuccess',
   }),
-  subscriptionMessage: (message: any) => ({
+  subscriptionMessage: (
+    key: string,
+    message: any
+  ): SubscriptionMessageAction => ({
     type: 'subscriptionMessage',
+    key,
     message,
+  }),
+  subscriptionSuccess: (key: string): SubscriptionSuccess => ({
+    type: 'subscriptionSuccess',
+    key,
   }),
 }
 

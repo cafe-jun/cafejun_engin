@@ -29,13 +29,52 @@ type UnsubscribeAction = {
   key: string
 }
 
-const actionTypes = ['getId', 'reuseId', 'subscribe', 'unsubscribe']
+type EnterAction = {
+  type: 'enter'
+  channel: string
+}
+
+type LeaveAction = {
+  type: 'leave'
+}
+
+const actionTypes = [
+  'getId',
+  'reuseId',
+  'subscribe',
+  'unsubscribe',
+  'enter',
+  'leave',
+  'message',
+]
+// 예외적으로 따로 함
+type MessageAction = {
+  type: 'message'
+  message: Message
+}
+
+export type Message =
+  | {
+      type: 'text'
+      text: string
+    }
+  | {
+      type: 'mute'
+      value: boolean
+    }
+  | {
+      type: 'custom'
+      value: any
+    }
 
 export type ReceiveAction =
   | GetIdAction
   | ReuseIdAction
   | SubscribeAction
   | UnsubscribeAction
+  | EnterAction
+  | LeaveAction
+  | MessageAction
 
 export function isReceiveAction(object: any): object is ReceiveAction {
   if (!object?.type) return false
