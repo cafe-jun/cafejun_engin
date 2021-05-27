@@ -17,6 +17,8 @@ class Session {
   id: string
   private token: string
   private currentChannel: string | null = null
+  // 함수의 비어있는 배열
+  private unsubscriptionMap = new Map<string, () => void>()
   // 세션이 끊길때 사용
   //  private subscribedTo: Set<string> = new Set()
 
@@ -65,12 +67,15 @@ class Session {
         break
       }
       case 'leave': {
-        console.log('what')
         this.handleLeave()
         break
       }
       case 'message': {
         this.handleMessage(action.message)
+        break
+      }
+      case 'listSessions': {
+        this.handleListSessions()
         break
       }
     }
@@ -80,24 +85,33 @@ class Session {
     this.sendJSON(action)
   }
   private handleSubscribe(key: string) {
-    subscription.subscribe(key, this)
+    const unsubscribe = subscription.subscribe(key, this)
+    this.unsubscriptionMap.set(key, unsubscribe)
     const action = actionCreators.subscriptionSuccess(key)
     this.sendJSON(action)
   }
 
   private handleUnsubscribe(key: string) {
     subscription.unsubscribe(key, this)
+    this.unsubscriptionMap.delete(key)
   }
 
   private handleEnter(channel: string) {
-    subscription.subscribe(`channel:${channel}`, this)
+    const key = `channel:${channel}`
+    const unsubscribe = subscription.subscribe(key, this)
+    this.unsubscriptionMap.set(key, unsubscribe)
     channelHelper.enter(channel, this.id)
     this.currentChannel = channel
   }
   private handleLeave() {
-    console.log('여기 출력')
     if (!this.currentChannel) return
-    subscription.unsubscribe(`channel:${this.currentChannel}`, this)
+    const key = `channel:${this.currentChannel}`
+    const unsubscribe = this.unsubscriptionMap.get(key)
+    unsubscribe?.()
+    this.unsubscriptionMap.delete(key)
+
+    // subscription.unsubscribe(`channel:${this.currentChannel}`, this)
+
     channelHelper.leave(this.currentChannel, this.id)
     this.currentChannel = null
   }
@@ -106,6 +120,26 @@ class Session {
     console.log(message, this.currentChannel)
     if (!this.currentChannel) return
     channelHelper.message(this.currentChannel, this.id, message)
+  }
+  async handleListSessions() {
+    // 채널이 없으면 아무것도 안하게 한다
+    console.log('aaa')
+    if (!this.currentChannel) return
+    try {
+      const sessions = await channelHelper.listSessions(this.currentChannel)
+      this.sendJSON(actionCreators.listSessionsSuccess(sessions))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  dispose() {
+    // unsubscribe
+    const fns = Array.from(this.unsubscriptionMap.values())
+    fns.forEach(fn => fn())
+    // remove from channel
+    if (this.currentChannel) {
+      channelHelper.leave(this.currentChannel, this.id)
+    }
   }
 
   public sendSubscriptionMessage(key: string, message: any) {

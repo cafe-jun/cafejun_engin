@@ -29,11 +29,17 @@ type SubscriptionSuccess = {
   key: string
 }
 
+type ListSessionsSuccess = {
+  type: 'listSessionsSuccess'
+  sessions: string[]
+}
+
 export type sendAction =
   | connectedAction
   | ReuseIdSuccessAction
   | SubscriptionMessageAction
   | SubscriptionSuccess
+  | ListSessionsSuccess
 
 const actionCreators = {
   connected: (id: string, token: string): connectedAction => ({
@@ -60,6 +66,10 @@ const actionCreators = {
   subscriptionSuccess: (key: string): SubscriptionSuccess => ({
     type: 'subscriptionSuccess',
     key,
+  }),
+  listSessionsSuccess: (sessions: string[]): ListSessionsSuccess => ({
+    type: 'listSessionsSuccess',
+    sessions,
   }),
 }
 
