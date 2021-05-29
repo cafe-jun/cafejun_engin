@@ -6,6 +6,8 @@ import { createHmac } from 'crypto'
 import { globalSubscriber } from './redis/createRedisClient'
 import subscription from './redis/subscription'
 import channelHelper from './channelHelper'
+import prefixer from './redis/prefixer'
+import rtcHelper from './rtcHelper'
 
 const { SESSION_SECRET_KEY } = process.env
 
@@ -78,7 +80,29 @@ class Session {
         this.handleListSessions()
         break
       }
+      case 'call': {
+        this.handleCall(action.to)
+        break
+      }
+      case 'answer': {
+        this.handleAnswer(action.to)
+        break
+      }
+      case 'candidate': {
+        this.handleCandidate(action.to)
+        break
+      }
     }
+  }
+  subscriibe(key: string) {
+    const unsubscribe = subscription.subscribe(key, this)
+    this.unsubscriptionMap.set(key, unsubscribe)
+  }
+  unsubscribe(key: string) {
+    const unsubscribe = this.unsubscriptionMap.get(key)
+    unsubscribe?.()
+    //subscription.unsubscribe(key, this)
+    this.unsubscriptionMap.delete(key)
   }
   private handleGetId(): void {
     const action = actionCreators.getIdSuccess(this.id)
@@ -92,23 +116,38 @@ class Session {
   }
 
   private handleUnsubscribe(key: string) {
-    subscription.unsubscribe(key, this)
-    this.unsubscriptionMap.delete(key)
+    this.unsubscribe(key)
+    // subscription.unsubscribe(key, this)
+    // this.unsubscriptionMap.delete(key)
   }
+
 
   private handleEnter(channel: string) {
     const key = `channel:${channel}`
-    const unsubscribe = subscription.subscribe(key, this)
-    this.unsubscriptionMap.set(key, unsubscribe)
+    // subscribe public 
+    this.subscriibe(prefixer.channel(channel))
+    this.subscriibe(prefixer.direct(this.id))
+
+    // const unsubscribe = subscription.subscribe(key, this)
+    // this.unsubscriptionMap.set(key, unsubscribe)
+    // // subscribe direct
+
+    // const directKey = prefixer.direct(this.id)
+    // const unsubscribeDirect = subscription.subscribe(directKey, this)
+    // this.unsubscriptionMap.set(directKey, unsubscribeDirect)
+
     channelHelper.enter(channel, this.id)
     this.currentChannel = channel
   }
   private handleLeave() {
     if (!this.currentChannel) return
-    const key = `channel:${this.currentChannel}`
-    const unsubscribe = this.unsubscriptionMap.get(key)
-    unsubscribe?.()
-    this.unsubscriptionMap.delete(key)
+    this.unsubscribe(prefixer.channel(this.currentChannel))
+    this.unsubscribe(prefixer.direct(this.id))
+
+    // const key = prefixer.channel(this.currentChannel)
+    // const unsubscribe = this.unsubscriptionMap.get(key)
+    // unsubscribe?.()
+    // this.unsubscriptionMap.delete(key)
 
     // subscription.unsubscribe(`channel:${this.currentChannel}`, this)
 
@@ -116,14 +155,35 @@ class Session {
     this.currentChannel = null
   }
 
+  handleCall(to: string) {
+    rtcHelper.call({
+      from: this.id,
+      to
+    })
+  }
+
+  handleAnswer(to: string) {
+    rtcHelper.answer({
+      from: this.id,
+      to
+    })
+  }
+  handleCandidate(to: string) {
+    rtcHelper.candidate({
+      from: this.id,
+      to
+    })
+  }
+
+
   private handleMessage(message: Message) {
     console.log(message, this.currentChannel)
     if (!this.currentChannel) return
     channelHelper.message(this.currentChannel, this.id, message)
   }
+
   async handleListSessions() {
     // 채널이 없으면 아무것도 안하게 한다
-    console.log('aaa')
     if (!this.currentChannel) return
     try {
       const sessions = await channelHelper.listSessions(this.currentChannel)
@@ -132,19 +192,26 @@ class Session {
       console.error(e)
     }
   }
+  // channel 구독 해지 
+  // redis sessions 에서sessionId 제거하기 
   dispose() {
-    // unsubscribe
     const fns = Array.from(this.unsubscriptionMap.values())
     fns.forEach(fn => fn())
+    // unsubscribe
     // remove from channel
-    if (this.currentChannel) {
-      channelHelper.leave(this.currentChannel, this.id)
-    }
+    if (!this.currentChannel) return
+    channelHelper.leave(this.currentChannel, this.id)
   }
 
   public sendSubscriptionMessage(key: string, message: any) {
-    const action = actionCreators.subscriptionMessage(key, message)
-    this.sendJSON(action)
+    // direct
+    // if (/^direct:/.test(key)) {
+    //   return
+    // }
+    //const action = actionCreators.subscriptionMessage(key, message)
+    //this.sendJSON(action)
+    this.sendJSON(message)
+
   }
 }
 

@@ -38,6 +38,34 @@ type LeaveAction = {
   type: 'leave'
 }
 
+// 예외적으로 따로 함
+type MessageAction = {
+  type: 'message'
+  message: Message
+}
+
+type LIST_SESSIONS = {
+  type: 'listSessions'
+}
+type CallAction = {
+  type: 'call'
+  to: string
+  // description: {
+  //   sdp: string
+  //   type: 'offer' | 'answer'
+  // }
+}
+
+type AnswerAction = {
+  type: 'answer'
+  to: string
+}
+
+type CandidatedAciton = {
+  type: 'candidate'
+  to: string
+}
+
 const actionTypes = [
   'getId',
   'reuseId',
@@ -47,30 +75,26 @@ const actionTypes = [
   'leave',
   'message',
   'listSessions',
+  'call',
+  'AnswerAction',
+  'candidate'
 ]
-// 예외적으로 따로 함
-type MessageAction = {
-  type: 'message'
-  message: Message
-}
 
 export type Message =
   | {
-      type: 'text'
-      text: string
-    }
+    type: 'text'
+    text: string
+  }
   | {
-      type: 'mute'
-      value: boolean
-    }
+    type: 'mute'
+    value: boolean
+  }
   | {
-      type: 'custom'
-      value: any
-    }
+    type: 'custom'
+    value: any
+  }
 
-type LIST_SESSIONS = {
-  type: 'listSessions'
-}
+
 
 export type ReceiveAction =
   | GetIdAction
@@ -81,6 +105,9 @@ export type ReceiveAction =
   | LeaveAction
   | MessageAction
   | LIST_SESSIONS
+  | CallAction
+  | AnswerAction
+  | CandidatedAciton
 
 export function isReceiveAction(object: any): object is ReceiveAction {
   if (!object?.type) return false
