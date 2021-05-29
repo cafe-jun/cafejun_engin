@@ -11,39 +11,39 @@ import actionCreators from './actions/send'
 
 const channelHelper = {
   enter(channel: string, sessionId: string) {
+    // coreRedisClient.publish(
+    //   prefixer.channel(channel),
+    //   JSON.stringify({
+    //     type: 'enter',
+    //     sessionId: sessionId,
+    //   })
+    // )
     publishJSON(prefixer.channel(channel), actionCreators.entered(sessionId))
-    coreRedisClient.publish(
-      prefixer.channel(channel),
-      JSON.stringify({
-        type: 'enter',
-        sessionId: sessionId,
-      })
-    )
     coreRedisClient.lpush(prefixer.sessions(channel), sessionId)
   },
 
   leave(channel: string, sessionId: string) {
+    // coreRedisClient.publish(
+    //   prefixer.channel(channel),
+    //   JSON.stringify({
+    //     type: 'leave',
+    //     sessionId: sessionId,
+    //   })
+    // )
     publishJSON(prefixer.channel(channel), actionCreators.left(sessionId))
-    coreRedisClient.publish(
-      prefixer.channel(channel),
-      JSON.stringify({
-        type: 'leave',
-        sessionId: sessionId,
-      })
-    )
     coreRedisClient.lrem(prefixer.sessions(channel), 1, sessionId)
   },
   message(channel: string, sessionId: string, message: Message) {
     publishJSON(prefixer.channel(channel), actionCreators.messaged(sessionId, message))
 
-    coreRedisClient.publish(
-      prefixer.channel(channel),
-      JSON.stringify({
-        type: 'leave',
-        sessionId,
-        message,
-      })
-    )
+    // coreRedisClient.publish(
+    //   prefixer.channel(channel),
+    //   JSON.stringify({
+    //     type: 'leave',
+    //     sessionId,
+    //     message,
+    //   })
+    // )
   },
   async listSessions(channel: string) {
     const key = prefixer.sessions(channel)

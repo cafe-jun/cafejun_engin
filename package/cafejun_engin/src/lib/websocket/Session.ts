@@ -3,7 +3,6 @@ import WebSocket = require('ws')
 import { Message, ReceiveAction } from './actions/receive'
 import actionCreators from './actions/send'
 import { createHmac } from 'crypto'
-import { globalSubscriber } from './redis/createRedisClient'
 import subscription from './redis/subscription'
 import channelHelper from './channelHelper'
 import prefixer from './redis/prefixer'
@@ -109,8 +108,9 @@ class Session {
     this.sendJSON(action)
   }
   private handleSubscribe(key: string) {
-    const unsubscribe = subscription.subscribe(key, this)
-    this.unsubscriptionMap.set(key, unsubscribe)
+    this.subscriibe(key)
+    // const unsubscribe = subscription.subscribe(key, this)
+    // this.unsubscriptionMap.set(key, unsubscribe)
     const action = actionCreators.subscriptionSuccess(key)
     this.sendJSON(action)
   }
@@ -123,11 +123,7 @@ class Session {
 
 
   private handleEnter(channel: string) {
-    const key = `channel:${channel}`
-    // subscribe public 
-    this.subscriibe(prefixer.channel(channel))
-    this.subscriibe(prefixer.direct(this.id))
-
+    //const key = `channel:${channel}`
     // const unsubscribe = subscription.subscribe(key, this)
     // this.unsubscriptionMap.set(key, unsubscribe)
     // // subscribe direct
@@ -135,6 +131,10 @@ class Session {
     // const directKey = prefixer.direct(this.id)
     // const unsubscribeDirect = subscription.subscribe(directKey, this)
     // this.unsubscriptionMap.set(directKey, unsubscribeDirect)
+
+    // subscribe public 
+    this.subscriibe(prefixer.channel(channel))
+    this.subscriibe(prefixer.direct(this.id))
 
     channelHelper.enter(channel, this.id)
     this.currentChannel = channel

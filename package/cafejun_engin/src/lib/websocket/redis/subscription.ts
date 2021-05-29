@@ -44,7 +44,8 @@ const subscription = new Subscription()
 globalSubscriber.on('message', (channel, message) => {
   try {
     const parsed = JSON.parse(message)
-    subscription.dispatch(channel, message)
+    //subscription.dispatch(channel, message)
+    subscription.dispatch(channel, parsed)
   } catch (error) {
     console.error(`Fail to parse message from redis subscription ${message}`)
   }

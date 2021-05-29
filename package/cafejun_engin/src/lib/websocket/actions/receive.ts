@@ -76,7 +76,7 @@ const actionTypes = [
   'message',
   'listSessions',
   'call',
-  'AnswerAction',
+  'answer',
   'candidate'
 ]
 

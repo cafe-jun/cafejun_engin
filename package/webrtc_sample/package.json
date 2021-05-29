@@ -1,0 +1,12 @@
+{
+    "name": "webrtc_sample",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "start": "snowpack dev"
+    },
+    "devDependencies": {
+        "snowpack": "^3.5.2"
+    }
+}
