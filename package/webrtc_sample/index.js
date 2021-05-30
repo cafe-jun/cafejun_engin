@@ -5,7 +5,10 @@ ws.addEventListener('message', (event) => {
     handleMessage(event.data.toString());
 });
 
+const rtcConfigureation = {};
+
 let localStream = null;
+let localPeer = null;
 
 function sendJSON(object) {
     const message = JSON.stringify(object);
@@ -30,22 +33,79 @@ function enterChannel(channelName) {
     });
 }
 
-function call(sessionId) {
+async function call(to) {
     if (!localStream) return;
-    const videoTracks = localStream.getVideoTrack();
-    const audioTrack = localStream.getAudioTrack();
+
+    localPeer = new RTCPeerConnection(rtcConfigureation);
+    localPeer.addEventListener('icecandidate', (e) => {
+        console.log('icecandidate');
+        icecandidate(to, e.candidate);
+    });
+
+    localStream.getTracks().forEach((track) => {
+        localPeer.addTrack(track);
+    });
+
+    const offer = await localPeer.createOffer();
+    console.log(`offer: ${offer}`);
+    await localPeer.setLocalDescription(offer);
+
+    //const remotePeer =
     sendJSON({
         type: 'call',
-        to: sessionId,
+        to,
+        description: offer,
+    });
+    console.dir(`LocalStream : ${localStream}`);
+}
+
+async function answer(to, description) {
+    console.log(`LocalStream : ${localStream}`);
+
+    if (!localStream) return;
+
+    localPeer = new RTCPeerConnection(rtcConfigureation);
+    localPeer.addEventListener('icecandidate', (e) => {
+        icecandidate(to, e.candidate);
+        console.log('icecandidate');
+    });
+    localStream.getTracks().forEach((track) => {
+        localPeer.addTrack(track, localStream);
+    });
+    console.log('여기 실행?');
+    await localPeer.setRemoteDescription(description);
+    const answer = await localPeer.createAnswer();
+    localPeer.setLocalDescription(answer);
+
+    sendJSON({
+        type: 'answer',
+        to,
+        description: answer,
     });
 }
 
-function answer(to) {
+async function candidated(from, candidate) {
+    try {
+        localPeer.addIceCandidate(candidate);
+        console.log(`Candidated ${from} Success`);
+    } catch (e) {
+        console.error(`Fail to candidate ${e.toString()}`);
+    }
+}
+
+async function answered(from, description) {
+    await localPeer.setRemoteDescription(description);
+    console.log(`Answered Call from Success for ${from}`);
+}
+
+async function icecandidate(to, candidate) {
     sendJSON({
-        type: 'answer',
-        to: to,
+        type: 'candidate',
+        to,
+        candidate,
     });
 }
+
 let sessionId = null;
 
 function handleMessage(message) {
@@ -64,17 +124,24 @@ function handleMessage(message) {
                 sessionId = action.id;
                 break;
             case 'entered':
+                console.dir(`${action.sessionId}`);
                 if (action.sessionId === sessionId) {
                     console.log('entered Success');
                     break;
                 }
-                //console.dir(action);
                 console.log(`Call ${action.sessionId}`);
                 call(action.sessionId);
                 break;
             case 'called':
-                console.log(`${action.from}`);
-                answer(action.from);
+                console.log(`called ${action.from}`);
+                answer(action.from, action.description);
+                break;
+            case 'answered':
+                console.log(`Answered : ${action.from}`);
+                answered(action.from, action.description);
+                break;
+            case 'candidated':
+                candidated(action.from, action.candidate);
                 break;
         }
     } catch (e) {
@@ -85,9 +152,8 @@ function handleMessage(message) {
 
 const channelForm = document.querySelector('#channelForm');
 
-channelForm.addEventListener('submit', (e) => {
+channelForm.addEventListener('submit', async (e) => {
     //console.log(e.target.channelName.value);
-    enterChannel(channelForm.channelName.value);
     channelForm.querySelector('button').disabled = true;
 
     // sendJSON(
@@ -96,8 +162,9 @@ channelForm.addEventListener('submit', (e) => {
     //         channel: e.target.channelName.value,
     //     }),
     // );
-    //initializeStream();
     e.preventDefault();
+    await initializeStream();
+    enterChannel(channelForm.channelName.value);
 });
 //const button = document.body.querySelector('#binLoadCam');
 // const myVideo = document.body.querySelector('#myVideo');

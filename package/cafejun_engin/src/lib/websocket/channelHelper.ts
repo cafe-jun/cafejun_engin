@@ -1,6 +1,5 @@
 // 인스턴스까지 필요 없다
 import { Message } from './actions/receive'
-import Session from './Session'
 import { coreRedisClient, publishJSON } from './redis/createRedisClient'
 import { promisify } from 'util'
 import prefixer from './redis/prefixer'
