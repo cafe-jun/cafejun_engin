@@ -3,11 +3,11 @@ import WebSocket = require('ws')
 import { Message, ReceiveAction } from './actions/receive'
 import actionCreators from './actions/send'
 import { createHmac } from 'crypto'
-import { globalSubscriber } from './redis/createRedisClient'
 import subscription from './redis/subscription'
 import channelHelper from './channelHelper'
 import prefixer from './redis/prefixer'
 import rtcHelper from './rtcHelper'
+import { Description } from './actions/common'
 
 const { SESSION_SECRET_KEY } = process.env
 
@@ -81,15 +81,15 @@ class Session {
         break
       }
       case 'call': {
-        this.handleCall(action.to)
+        this.handleCall(action.to, action.description)
         break
       }
       case 'answer': {
-        this.handleAnswer(action.to)
+        this.handleAnswer(action.to, action.description)
         break
       }
       case 'candidate': {
-        this.handleCandidate(action.to)
+        this.handleCandidate(action.to, action.candidate)
         break
       }
     }
@@ -109,8 +109,9 @@ class Session {
     this.sendJSON(action)
   }
   private handleSubscribe(key: string) {
-    const unsubscribe = subscription.subscribe(key, this)
-    this.unsubscriptionMap.set(key, unsubscribe)
+    this.subscriibe(key)
+    // const unsubscribe = subscription.subscribe(key, this)
+    // this.unsubscriptionMap.set(key, unsubscribe)
     const action = actionCreators.subscriptionSuccess(key)
     this.sendJSON(action)
   }
@@ -123,11 +124,7 @@ class Session {
 
 
   private handleEnter(channel: string) {
-    const key = `channel:${channel}`
-    // subscribe public 
-    this.subscriibe(prefixer.channel(channel))
-    this.subscriibe(prefixer.direct(this.id))
-
+    //const key = `channel:${channel}`
     // const unsubscribe = subscription.subscribe(key, this)
     // this.unsubscriptionMap.set(key, unsubscribe)
     // // subscribe direct
@@ -135,6 +132,10 @@ class Session {
     // const directKey = prefixer.direct(this.id)
     // const unsubscribeDirect = subscription.subscribe(directKey, this)
     // this.unsubscriptionMap.set(directKey, unsubscribeDirect)
+
+    // subscribe public 
+    this.subscriibe(prefixer.channel(channel))
+    this.subscriibe(prefixer.direct(this.id))
 
     channelHelper.enter(channel, this.id)
     this.currentChannel = channel
@@ -155,23 +156,26 @@ class Session {
     this.currentChannel = null
   }
 
-  handleCall(to: string) {
+  handleCall(to: string, description: Description) {
     rtcHelper.call({
       from: this.id,
-      to
+      to,
+      description
     })
   }
 
-  handleAnswer(to: string) {
+  handleAnswer(to: string, description: Description) {
     rtcHelper.answer({
       from: this.id,
-      to
+      to,
+      description
     })
   }
-  handleCandidate(to: string) {
+  handleCandidate(to: string, candidate: any) {
     rtcHelper.candidate({
       from: this.id,
-      to
+      to,
+      candidate
     })
   }
 
