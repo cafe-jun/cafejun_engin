@@ -15,7 +15,7 @@ function sendJSON(object) {
 }
 
 let sessionId = null;
-let localPeer = null;
+let localPeer = {};
 
 function handleMessage(message) {
     try {
@@ -52,12 +52,11 @@ function handleMessage(message) {
 
 const channelForm = document.querySelector('#channelForm');
 
-let localStream = null;
-
-async function initializeStream() {
+async function createMediaStream() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        console.log('Received localStream');
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        console.log('Received Stream');
+        return stream;
     } catch (e) {
         console.error(e);
     }
@@ -71,20 +70,27 @@ function enterChannel(channelName) {
 }
 
 async function call(to) {
-    if (!localStream) return;
+    const stream = await createMediaStream();
 
-    localPeer = new RTCPeerConnection(rtcConfiguration);
+    const localPeer = new RTCPeerConnection(rtcConfiguration);
+    localPeer[to] = localPeer;
+
     localPeer.addEventListener('icecandidate', (e) => {
         icecandidate(to, e.candidate);
     });
+
+    const video = document.createElement('video');
+    document.body.appendChild(video);
+    video.autoplay = true;
+
     localPeer.addEventListener('track', (ev) => {
-        if (myVideo.srcObject !== ev.streams[0]) {
-            myVideo.srcObject = ev.streams[0];
+        if (video.srcObject !== ev.streams[0]) {
+            video.srcObject = ev.streams[0];
         }
     });
 
-    localStream.getTracks().forEach((track) => {
-        localPeer.addTrack(track, localStream);
+    stream.getTracks().forEach((track) => {
+        localPeer.addTrack(track, stream);
     });
 
     const offer = await localPeer.createOffer();
@@ -99,20 +105,24 @@ async function call(to) {
 }
 
 async function answer(to, description) {
-    if (!localStream) return;
+    const stream = await createMediaStream();
 
     localPeer = new RTCPeerConnection(rtcConfiguration);
     localPeer.addEventListener('icecandidate', (e) => {
         icecandidate(to, e.candidate);
     });
+    const video = document.createElement('video');
+    document.body.appendChild(video);
+    video.autoplay = true;
+
     localPeer.addEventListener('track', (ev) => {
-        if (myVideo.srcObject !== ev.streams[0]) {
-            myVideo.srcObject = ev.streams[0];
+        if (video.srcObject !== ev.streams[0]) {
+            video.srcObject = ev.streams[0];
         }
     });
 
-    localStream.getTracks().forEach((track) => {
-        localPeer.addTrack(track, localStream);
+    stream.getTracks().forEach((track) => {
+        localPeer.addTrack(track, stream);
     });
 
     await localPeer.setRemoteDescription(description);
@@ -152,6 +162,14 @@ channelForm.addEventListener('submit', async (e) => {
     channelForm.querySelector('button').disabled = true;
     e.preventDefault();
 
-    await initializeStream();
+    //await createMediaStream();
     enterChannel(channelForm.channelName.value);
+});
+
+createMediaStream().then((stream) => {
+    const myVideo = document.createElement('video');
+    document.body.appendChild(myVideo);
+    myVideo.srcObject = stream;
+    myVideo.autoplay = true;
+    myVideo.volume = 0;
 });
