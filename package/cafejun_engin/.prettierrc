@@ -3,5 +3,9 @@
   "singleQuote": true,
   "tabWidth": 2,
   "printWidth": 80,
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }
