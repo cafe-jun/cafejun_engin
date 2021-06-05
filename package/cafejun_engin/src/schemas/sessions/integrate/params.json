@@ -1,0 +1,11 @@
+{
+  "title": "Integreat Session Params",
+  "type": "object",
+  "description": "User data must contain unique `id` field.\n You can put any fields in user schema.",
+  "properties": {
+    "id": {
+      "type": "string"
+    }
+  },
+  "required": ["id"]
+}

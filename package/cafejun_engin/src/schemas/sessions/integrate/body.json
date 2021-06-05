@@ -1,0 +1,10 @@
+{
+  "title": "Integreat Session Body",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    }
+  },
+  "required": ["id"]
+}
