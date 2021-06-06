@@ -5,6 +5,7 @@ import subscription from './../redis/subscription';
 
 import { Message } from "./receive"
 import { Description } from "./common"
+import { SessionUser } from "../../../services/sessionService"
 
 type connectedAction = {
   type: 'connected'
@@ -39,6 +40,7 @@ type ListSessionsSuccess = {
 type EnteredAction = {
   type: 'entered'
   sessionId: string
+  user: SessionUser
 }
 type LeftAction = {
   type: "left"
@@ -112,9 +114,10 @@ const actionCreators = {
     type: 'listSessionsSuccess',
     sessions,
   }),
-  entered: (sessionId: string): EnteredAction => ({
+  entered: (sessionId: string, user: SessionUser): EnteredAction => ({
     type: 'entered',
-    sessionId
+    sessionId,
+    user
   }),
   left: (sessionId: string): LeftAction => ({
     type: 'left',

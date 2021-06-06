@@ -31,3 +31,4 @@
 }
 
 FASTIFY_ADDRESS=0.0.0.0
+git rm --cached .env
