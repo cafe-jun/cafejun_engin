@@ -17,9 +17,9 @@ model User {
 }
 
 model Channel {
-  id             Int              @id @default(autoincrement())
-  name           String
-  password       String?
+  id             String           @id
+  //name           String
+  //password       String?
   CannelSessions CannelSessions[]
 }
 
@@ -34,6 +34,6 @@ model CannelSessions {
   id        Int     @id @default(autoincrement())
   sessions  Session @relation(fields: [sessionId], references: [id])
   Channel   Channel @relation(fields: [channelId], references: [id])
-  channelId Int
+  channelId String
   sessionId String
 }

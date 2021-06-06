@@ -19,6 +19,7 @@ const channelHelper = {
     //   })
     // )
     publishJSON(prefixer.channel(channel), actionCreators.entered(sessionId, user))
+    // To Do : use channel Service 
     coreRedisClient.lpush(prefixer.sessions(channel), sessionId)
   },
 
@@ -31,6 +32,7 @@ const channelHelper = {
     //   })
     // )
     publishJSON(prefixer.channel(channel), actionCreators.left(sessionId))
+    // To Do : use channel Service 
     coreRedisClient.lrem(prefixer.sessions(channel), 1, sessionId)
   },
   message(channel: string, sessionId: string, message: Message) {
@@ -46,6 +48,8 @@ const channelHelper = {
     // )
   },
   async listSessions(channel: string) {
+    // To Do : use channel Service 
+
     const key = prefixer.sessions(channel)
     // this가 무엇인지를 몰라 bind를 해야한다
     const lrangeAsync = promisify(coreRedisClient.lrange).bind(coreRedisClient)
