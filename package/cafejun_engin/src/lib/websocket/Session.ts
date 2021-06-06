@@ -8,6 +8,7 @@ import channelHelper from './channelHelper'
 import prefixer from './redis/prefixer'
 import rtcHelper from './rtcHelper'
 import { Description } from './actions/common'
+import sessionService from '../../services/sessionService'
 
 const { SESSION_SECRET_KEY } = process.env
 
@@ -122,7 +123,7 @@ class Session {
     // this.unsubscriptionMap.delete(key)
   }
 
-  private handleEnter(channel: string) {
+  private async handleEnter(channel: string) {
     //const key = `channel:${channel}`
     // const unsubscribe = subscription.subscribe(key, this)
     // this.unsubscriptionMap.set(key, unsubscribe)
@@ -133,10 +134,15 @@ class Session {
     // this.unsubscriptionMap.set(directKey, unsubscribeDirect)
 
     // subscribe public
+    const user = await sessionService.getUserBySessionId(this.id)
+    if (!user) {
+      // TODO: send Error
+      return
+    }
     this.subscriibe(prefixer.channel(channel))
-    this.subscriibe(prefixer.direct(this.id))
+    //this.subscriibe(prefixer.direct(this.id))
 
-    channelHelper.enter(channel, this.id)
+    channelHelper.enter(channel, this.id, user)
     this.currentChannel = channel
   }
   private handleLeave() {

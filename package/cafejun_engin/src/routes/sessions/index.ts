@@ -10,7 +10,7 @@ const sessions: FastifyPluginAsync = async fastify => {
   //fastify.get('/', async (request, reply) => {})
   fastify.post<{ Params: IntegreatSessionParams; Body: IntegreatSessionBody }>('/:id', {
     schema: {
-      description: 'Integreat user data to sessionyou can put any object type for user data schema\n User data must contain `id` field',
+      description: 'Integrate user data to session.\nUse this API to create or update the session.',
       params: IntegrateSessionParamsSchema,
       body: IntegrateSessionBodySchema
     },
@@ -18,9 +18,9 @@ const sessions: FastifyPluginAsync = async fastify => {
     const { id } = request.params
     const { body } = request
     const userJSONString = JSON.stringify(body)
-    sessionService.integrate(id, userJSONString)
-    console.log(request.params.id, request.body)
-    return 'hello world'
+    return sessionService.integrate(id, userJSONString)
+    // console.log(request.params.id, request.body)
+    // return 'hello world'`
   })
 }
 
