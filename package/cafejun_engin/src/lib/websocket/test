@@ -18,3 +18,17 @@
 {
     "type" : "leave"
 }
+{
+    "type" : "call",
+    ""
+
+}
+
+{
+    "type" : "answer",
+    "to" : "e5b8ebe2-6f2b-4532-ab92-9d85b7c5f349",      
+    "description" : "helloworld"
+}
+
+FASTIFY_ADDRESS=0.0.0.0
+git rm --cached .env

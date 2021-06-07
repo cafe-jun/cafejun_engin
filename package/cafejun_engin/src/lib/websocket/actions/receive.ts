@@ -2,7 +2,7 @@
  * actions that server receives
  */
 
-import { Description } from "./common"
+import { Description } from './common'
 
 /**
  * 사용자가 접속을 하게 되면 해당 아이디에 맞는 토큰 발급
@@ -46,7 +46,7 @@ type MessageAction = {
   message: Message
 }
 
-type LIST_SESSIONS = {
+type ListSessionAction = {
   type: 'listSessions'
 }
 type CallAction = {
@@ -57,7 +57,7 @@ type CallAction = {
 
 type AnswerAction = {
   type: 'answer'
-  to: string,
+  to: string
   description: Description
 }
 
@@ -78,24 +78,22 @@ const actionTypes = [
   'listSessions',
   'call',
   'answer',
-  'candidate'
+  'candidate',
 ]
 
 export type Message =
   | {
-    type: 'text'
-    text: string
-  }
+      type: 'text'
+      text: string
+    }
   | {
-    type: 'mute'
-    value: boolean
-  }
+      type: 'mute'
+      value: boolean
+    }
   | {
-    type: 'custom'
-    value: any
-  }
-
-
+      type: 'custom'
+      value: any
+    }
 
 export type ReceiveAction =
   | GetIdAction
@@ -105,7 +103,7 @@ export type ReceiveAction =
   | EnterAction
   | LeaveAction
   | MessageAction
-  | LIST_SESSIONS
+  | ListSessionAction
   | CallAction
   | AnswerAction
   | CandidatedAciton

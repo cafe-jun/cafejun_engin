@@ -3,8 +3,9 @@ import subscription from './../redis/subscription';
  * actions that server sends
  */
 
-import { Message } from "./receive"
-import { Description } from "./common"
+import { Message } from './receive'
+import { Description } from './common'
+import { SessionUser } from '../../../services/sessionService'
 
 type connectedAction = {
   type: 'connected'
@@ -34,14 +35,15 @@ type SubscriptionSuccess = {
 
 type ListSessionsSuccess = {
   type: 'listSessionsSuccess'
-  sessions: string[]
+  sessions: { id: string; user: any }[]
 }
 type EnteredAction = {
   type: 'entered'
   sessionId: string
+  user: SessionUser
 }
 type LeftAction = {
-  type: "left"
+  type: 'left'
   sessionId: string
 }
 type MessageAction = {
@@ -49,7 +51,6 @@ type MessageAction = {
   sessionId: string
   message: Message
 }
-
 
 type CalledAction = {
   type: 'called'
@@ -108,17 +109,23 @@ const actionCreators = {
     type: 'subscriptionSuccess',
     key,
   }),
-  listSessionsSuccess: (sessions: string[]): ListSessionsSuccess => ({
+  listSessionsSuccess: (
+    sessions: {
+      id: string
+      user: any
+    }[]
+  ): ListSessionsSuccess => ({
     type: 'listSessionsSuccess',
     sessions,
   }),
-  entered: (sessionId: string): EnteredAction => ({
+  entered: (sessionId: string, user: SessionUser): EnteredAction => ({
     type: 'entered',
-    sessionId
+    sessionId,
+    user,
   }),
   left: (sessionId: string): LeftAction => ({
     type: 'left',
-    sessionId
+    sessionId,
   }),
   messaged: (sessionId: string, message: Message): MessageAction => ({
     type: 'messaged',
@@ -128,19 +135,18 @@ const actionCreators = {
   called: (from: string, description: Description): CalledAction => ({
     type: 'called',
     from,
-    description
+    description,
   }),
   answered: (from: string, description: Description): AnsweredAction => ({
     type: 'answered',
     from,
-    description
+    description,
   }),
   candidated: (from: string, candidate: any): CandidatedAction => ({
     type: 'candidated',
     from,
-    candidate
-  })
-
+    candidate,
+  }),
 }
 
 export default actionCreators

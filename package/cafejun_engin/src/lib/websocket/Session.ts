@@ -8,6 +8,8 @@ import channelHelper from './channelHelper'
 import prefixer from './redis/prefixer'
 import rtcHelper from './rtcHelper'
 import { Description } from './actions/common'
+import sessionService from '../../services/sessionService'
+import channelService from '../../services/channelService'
 
 const { SESSION_SECRET_KEY } = process.env
 
@@ -122,8 +124,7 @@ class Session {
     // this.unsubscriptionMap.delete(key)
   }
 
-
-  private handleEnter(channel: string) {
+  private async handleEnter(channelId: string) {
     //const key = `channel:${channel}`
     // const unsubscribe = subscription.subscribe(key, this)
     // this.unsubscriptionMap.set(key, unsubscribe)
@@ -133,12 +134,22 @@ class Session {
     // const unsubscribeDirect = subscription.subscribe(directKey, this)
     // this.unsubscriptionMap.set(directKey, unsubscribeDirect)
 
-    // subscribe public 
-    this.subscriibe(prefixer.channel(channel))
-    this.subscriibe(prefixer.direct(this.id))
+    // subscribe public
+    const channel = channelService.findById(channelId)
+    if (!channel) {
+      // TODO:: send Error
+      return
+    }
+    const user = await sessionService.getUserBySessionId(this.id)
+    if (!user) {
+      // TODO: send Error
+      return
+    }
+    this.subscriibe(prefixer.channel(channelId))
+    //this.subscriibe(prefixer.direct(this.id))
 
-    channelHelper.enter(channel, this.id)
-    this.currentChannel = channel
+    channelHelper.enter(channelId, this.id, user)
+    this.currentChannel = channelId
   }
   private handleLeave() {
     if (!this.currentChannel) return
@@ -160,7 +171,7 @@ class Session {
     rtcHelper.call({
       from: this.id,
       to,
-      description
+      description,
     })
   }
 
@@ -168,17 +179,16 @@ class Session {
     rtcHelper.answer({
       from: this.id,
       to,
-      description
+      description,
     })
   }
   handleCandidate(to: string, candidate: any) {
     rtcHelper.candidate({
       from: this.id,
       to,
-      candidate
+      candidate,
     })
   }
-
 
   private handleMessage(message: Message) {
     console.log(message, this.currentChannel)
@@ -190,14 +200,14 @@ class Session {
     // 채널이 없으면 아무것도 안하게 한다
     if (!this.currentChannel) return
     try {
-      const sessions = await channelHelper.listSessions(this.currentChannel)
+      const sessions = await channelService.listUsers(this.currentChannel)
       this.sendJSON(actionCreators.listSessionsSuccess(sessions))
     } catch (e) {
       console.error(e)
     }
   }
-  // channel 구독 해지 
-  // redis sessions 에서sessionId 제거하기 
+  // channel 구독 해지
+  // redis sessions 에서sessionId 제거하기
   dispose() {
     const fns = Array.from(this.unsubscriptionMap.values())
     fns.forEach(fn => fn())
@@ -215,7 +225,6 @@ class Session {
     //const action = actionCreators.subscriptionMessage(key, message)
     //this.sendJSON(action)
     this.sendJSON(message)
-
   }
 }
 
